@@ -1,67 +1,27 @@
 import math
-
 from collections import OrderedDict
 
 
-def get_nodes(data):
-    return list(''.join(OrderedDict.fromkeys(data)))
-
-
-def get_iterations_to_reach_char(nodes, target_char, char_depth):
-    # Calculate the number of times the character list is cycled through
-    iterations = char_depth * len(nodes) - 1
-    
-    # Adjust if the target character is not the first character in the list
-    char_index = nodes.index(target_char)
-    iterations += char_index
-    # print(iterations)
-    return iterations
-
-
 def neuralize(data):
-    print(data)
-    nodes = sorted(get_nodes(data))
-
-    char_depth = 1
-    for char in data:
-        char_depth = get_iterations_to_reach_char(nodes, char, char_depth)
-        #  l d e n    length depth endpoint nodes
-    cypher = f'{len(data)}.{int(math.pow(len(nodes),len(data)))}.{char_depth}.{''.join( n for n in nodes )}'
-    print(cypher)
+    nodes = list(''.join(OrderedDict.fromkeys(data)))
+    layers = 1
+    for i, char in enumerate(data):
+        if i == 0: continue
+        layers = layers * len(nodes) - (len(nodes) - (nodes.index(char) + 1))
+        #           layers                                 Range      Key                        Nodes
+    cypher = f'{len(data)}.{int(math.pow(len(nodes),len(data)))}.{layers}.{''.join( n for n in nodes )}'
     return cypher
-
-
-def find_character(number, range_size, nodes):
-    # Determine the index of the character that gets the specified number
-    index = (number - 1) // range_size
-    
-    # Get the character from the list
-    character = nodes[index % len(nodes)]
-    
-    return character
 
 def denueralize(cypher):
     cypher = cypher.split(".")
-
-    length = int(cypher[0])
-    depth = int(cypher[1])
-    endpoint = int(cypher[2])
+    layers = int(cypher[0])
+    ranges = int(cypher[1])
+    key = int(cypher[2])
     nodes = list(cypher[3])
+    
     data = []
-    for i in range(1, length+1):
-        data.append(find_character(endpoint, depth, nodes))
-        depth = depth // len(nodes)
-    data.reverse()
-    print(''.join(char for char in data))
-
-
-
-while True:
-    try:
-        data = input("Enter Text: ")
-        neuralize(data)
-        cypher = input("Enter cypher: ")
-        denueralize(cypher)
-    except KeyboardInterrupt:
-        print("Exiting...")
-        break
+    for _ in range(1, layers + 1):
+        ranges = ranges // len(nodes)
+        data.append(nodes[((key - 1) // ranges) % len(nodes)])
+    print("text: ", end="")
+    print(*data, sep="")
